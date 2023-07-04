@@ -14,3 +14,4 @@ edition = "2021"
 [dependencies]
 cfs = { version="0.1.0", path = "../cfs" }
 clap = { version = "4.3.10", features = ["derive"] }
+deku = "0.16.0"
