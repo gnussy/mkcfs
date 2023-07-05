@@ -58,6 +58,11 @@ impl CfsPartition {
     }
 
     fn write(&self) -> Result<(), Box<dyn std::error::Error>> {
+        // ┌────────────┬─────────────────────────┬─────────────────────────┬────────────┬──────────────┬─────┬──────────────┐
+        // │Super Block │ Block Allocation Bitmap │ Inode Allocation Bitmap │ Inode List │ Data Block 0 │ ... │ Data Block N │
+        // └────────────┴─────────────────────────┴─────────────────────────┴────────────┴──────────────┴─────┴──────────────┘
+
+        // Super block
         let super_block = cfs::superblock::SuperBlock::new(
             cfs::MAGIC,
             self.block_size as u32,
@@ -68,7 +73,28 @@ impl CfsPartition {
             self.ninodes as u32,
         );
 
+        // BAM - Allocate a bitmap with the first block occupied by the root directory
+        // and all other blocks free
+        let mut bam = cfs::bitmap::Bitmap::new(self.bam_blocks as usize);
+        bam.set(0);
+
+        // IAM - Allocate a bitmap with the first inode occupied by the root directory
+        // and all other inodes free
+        let mut iam = cfs::bitmap::Bitmap::new(self.iam_blocks as usize);
+        iam.set(0);
+        iam.set(1);
+
+        // Inode List - Allocate the first inode for the root directory
+        let inode_list: cfs::inode::InodeList<0 /* dont know how to achieve this 😭 */> =
+            cfs::inode::InodeList::new();
+        
+        // Data Blocks - Allocate the first block for the root directory
+        // let mut root_dir = cfs::data::DataBlock::new();
+
         fs::write(&self.blk_dev, super_block.to_bytes()?)?;
+        fs::write(&self.blk_dev, bam.to_bytes())?;
+        fs::write(&self.blk_dev, iam.to_bytes())?;
+        fs::write(&self.blk_dev, inode_list.to_bytes()?)?;
 
         Ok(())
     }
