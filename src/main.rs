@@ -31,11 +31,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .write(true)
         .open(&blk_dev)?;
 
+    // Init logs
     cfs::init_library_logger();
+
     let mut cfs_partition = CfsPartition::new(file, block_size as u64)?;
-    cfs_partition.write_cfs()?;
-    cfs_partition.add_dentry_to_inode(cfs::ROOT_INODE, ".")?;
-    cfs_partition.add_dentry_to_inode(cfs::ROOT_INODE, "..")?;
+    cfs_partition.setup_root_dir()?;
 
     Ok(())
 }
