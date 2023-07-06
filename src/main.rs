@@ -1,8 +1,6 @@
 #![allow(dead_code)]
-use cfs;
 use clap::Parser;
 use deku::prelude::*;
-use std::fs;
 
 #[derive(Debug)]
 struct CfsPartition {
@@ -85,16 +83,12 @@ impl CfsPartition {
         iam.set(1);
 
         // Inode List - Allocate the first inode for the root directory
-        let inode_list: cfs::inode::InodeList<0 /* dont know how to achieve this 😭 */> =
-            cfs::inode::InodeList::new();
-        
-        // Data Blocks - Allocate the first block for the root directory
-        // let mut root_dir = cfs::data::DataBlock::new();
+        let inode_list = cfs::inode::InodeList::new();
 
-        fs::write(&self.blk_dev, super_block.to_bytes()?)?;
-        fs::write(&self.blk_dev, bam.to_bytes())?;
-        fs::write(&self.blk_dev, iam.to_bytes())?;
-        fs::write(&self.blk_dev, inode_list.to_bytes()?)?;
+        // Create the CFS
+        let cfs = cfs::Cfs::new(super_block, bam, iam, inode_list);
+
+        std::fs::write(&self.blk_dev, cfs.to_bytes()?)?;
 
         Ok(())
     }
@@ -124,7 +118,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Err("block device path does not exist".into());
     }
 
-    let _cfs_partition = CfsPartition::new(block_size as u64, blk_dev)?;
+    let cfs_partition = CfsPartition::new(block_size as u64, blk_dev)?;
+    cfs_partition.write()?;
 
     Ok(())
 }
