@@ -34,8 +34,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     cfs::init_library_logger();
     let mut cfs_partition = CfsPartition::new(file, block_size as u64)?;
     cfs_partition.write_cfs()?;
-    cfs_partition.add_dentry_to_inode(cfs::ROOT_INODE, ".")?;
-    cfs_partition.add_dentry_to_inode(cfs::ROOT_INODE, "..")?;
+    cfs_partition.add_dentry_to_inode(cfs::ROOT_INODE, ".", cfs::ROOT_INODE)?;
+    cfs_partition.add_dentry_to_inode(cfs::ROOT_INODE, "..", cfs::ROOT_INODE)?;
+    let mut file = std::fs::OpenOptions::new().read(true).open("pablo")?;
+    cfs_partition.add_file_to_inode(cfs::ROOT_INODE, "pablo", &mut file)?;
+    let mut file = std::fs::OpenOptions::new().read(true).open("./yes_sir/")?;
+    cfs_partition.add_file_to_inode(cfs::ROOT_INODE, "yes_sir", &mut file)?;
 
     Ok(())
 }
