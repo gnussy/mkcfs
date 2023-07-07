@@ -36,9 +36,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut cfs_partition = CfsPartition::new(file, block_size as u64)?;
     cfs_partition.setup_root_dir()?;
-    let mut file = std::fs::OpenOptions::new().read(true).open("pablo")?;
-    cfs_partition.add_file_to_inode(cfs::ROOT_INODE, "pablo", &mut file)?;
-    cfs_partition.add_dir_to_inode(cfs::ROOT_INODE, "teste_dir")?;
 
     Ok(())
 }
